@@ -2,7 +2,7 @@
 
 1. List all the pods showing name and namespace with a json path expression
 ```markdown
-kubectl get po -o=jsonpath="{.items[*]['metadata.name', 'metadata.namespace']}"
+k get po -o=jsonpath="{range .items[*]}{['metadata.name','metadata.namespace']}{'\n'}{end}"
 ```
 2. Create the nginx pod with version 1.17.4 and expose it on port 80
 ```markdown
@@ -14,7 +14,7 @@ kubectl set image po/nginx nginx=nginx:1.15-alpine
 ```
 4. Check the Image version without the describe command
 ```markdown
-kubectl get po nginx -o jsonpath='{.spec.containers[].image}{"\n"}'
+k get po app -o jsonpath="{range .spec.containers[*]}{.image}{'\n'}{end}"
 ```
 5. Create the nginx pod and execute the simple shell on the pod
 ```markdown
