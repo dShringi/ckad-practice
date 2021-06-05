@@ -142,31 +142,27 @@ status: {}
 ```markdown
 kubectl get pods --show-labels
 ```
-2.  Create a nginx pods with label env=prod
+2.  Create a nginx pods with labels env=prod, app=hazelcast and environment variable host=google.com, port=80
 ```markdown
-kubectl run nginx-prod --image=nginx --restart=Never --labels=env=prod
+kubectl run nginx-prod --image=nginx --restart=Never --labels="env=prod,app=hazelcast" --env="host=google.com" --env="port=80"
 ```
-3. Get the pods with label env
-```markdown
-kubectl get pods -L env
-```
-4. Get the pods with labels env=dev and env=prod
+3. Get the pods with labels env=dev and env=prod
 ```markdown
 kubectl get pods -l 'env in (dev,prod)'
 ```
-5. Change the label for one of the pod to env=uat
+4. Change the label for one of the pod to env=uat
 ```markdown
 kubectl label pod/nginx-prod env=uat --overwrite
 ```
-6. Remove the labels for the pods that we created now
+5. Remove the labels for the pods that we created now
 ```markdown
 kubectl label pod nginx-prod{1..2} env-
 ```
-7. Let’s add the label app=nginx for all the pods
+6. Let’s add the label app=nginx for all the pods
 ```markdown
 kubectl label pod nginx-prod{1..2} app=nginx
 ```
-8. Create a Pod that will be deployed on this node with the label nodeName=nginxnode
+7. Create a Pod that will be deployed on this node with the label nodeName=nginxnode
 ```markdown
 kubectl run nginx --image=nginx --restart=Never --dry-run -o yaml > pod.yaml
 // add the nodeSelector like below and create the pod
@@ -177,86 +173,62 @@ spec:
   nodeSelector:
     nodeName: nginxnode
 ```
-9. Annotate the pods with name=webapp
+8. Annotate the pods with name=webapp
 ```markdown
 kubectl annotate pod nginx-prod{1..2} name=webapp
 ```
-10. Remove the annotations on the pods and verify
+9. Remove the annotations on the pods and verify
 ```markdown
 kubectl annotate pod nginx-prod{1..2} name-
 ```
-11. Scale the deployment from 5 replicas to 20 replicas
+10. Scale the deployment from 5 replicas to 20 replicas
 ```markdown
 kubectl scale deploy webapp --replicas=20
 ```
-12. Get the deployment rollout status
+11. Get the deployment rollout status
 ```markdown
 kubectl rollout status deploy webapp
 ```
-13. Update the deployment with the image version 1.17.4
+12. Update the deployment with the image version 1.17.4
 ```markdown
 kubectl set image deploy/webapp nginx=nginx:1.17.4
+kubectl rollout status deploy webapp
 ```
-14. Check the rollout history
+13. Check the rollout history and undo the deployment to previous version
 ```markdown
 kubectl rollout history deploy webapp
-```
-15. Undo the deployment to the previous version 1.17.1 
-```markdown
 kubectl rollout undo deploy webapp
 ```
-16. Update the deployment to the Image 1.17.1
+14. Update the deployment to the Image 1.17.1
 ```markdown
 kubectl rollout undo deploy webapp --to-revision=3
 ```
-17. Check the history of the specific revision of that deployment
+15. Check the history of the specific revision of that deployment
 ```markdown
 kubectl rollout history deploy webapp --revision=7
 ```
-18. Pause the rollout of the deployment
-```markdown
-kubectl rollout pause deploy webapp
-```
-19. Resume the rollout of the deployment
-```markdown
-kubectl rollout resume deploy webapp
-```
-20. Apply the autoscaling to this deployment with minimum 10 and maximum 20 replicas and target CPU of 85% and verify hpa is created and replicas are increased to 10 from 1
+16. Apply the autoscaling to this deployment with minimum 10 and maximum 20 replicas and target CPU of 85% and verify hpa is created and replicas are increased to 10 from 1
 ```markdown
 kubectl autoscale deploy webapp --min=10 --max=20 --cpu-percent=85
 kubectl get hpa
 kubectl get pod -l app=webapp
 ```
-21. Create the Job with the image busybox which echos “Hello I am from job”
-```markdown
-kubectl create job hello-job --image=busybox -- echo "Hello I am from job"
-```
-22. Create the same job and make it run 10 times one after one
+17. Create the Job with the image busybox which echos “Hello I am from job”, make it run 10 times with 5 jobs in parallel
 ```markdown
 kubectl create job hello-job --image=busybox --dry-run -o yaml -- echo "Hello I am from job" > hello-job.yaml
-// edit the yaml file to add completions: 10
+// edit the yaml file to add completions: 10 and parallelism: 5
 kubectl create -f hello-job.yaml
 ```
 ```yaml
 spec:
   completions: 10
+  parallelism: 5
 ```
-23. Create the same job and make it run 10 times parallel
-```markdown
-kubectl create job hello-job --image=busybox --dry-run -o yaml -- echo "Hello I am from job" > hello-job.yaml
-// edit the yaml file to add parallelism: 10
-kubectl create -f hello-job.yaml
-```
-```yaml
-spec:
-  parallelism: 10
-```
-24. Create a Cronjob with busybox image that prints date and hello from kubernetes cluster message for every minute
+19. Create a Cronjob with busybox image that prints date and hello from kubernetes cluster message for every minute
 ```markdown
 kubectl create cj date-job --image=busybox --schedule="*/1 * * * *" -- bin/sh -c "date; echo Hello from kubernetes cluster"
 ```
 ---
-
 ## State Persistence
 1.Create a hostPath PersistentVolume named task-pv-volume with storage 10Gi, access modes ReadWriteOnce, storageClassName manual, and volume at /mnt/data 
 ```yaml
